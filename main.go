@@ -5,12 +5,11 @@ import (
 	"strings"
 )
 
-// === Struct ===
 type Kendaraan struct {
 	ID     int
 	Nama   string
 	Tipe   string
-	Status bool // true = tersedia, false = disewa
+	Status bool 
 }
 
 type Pelanggan struct {
@@ -24,7 +23,7 @@ type Rental struct {
 	Hari        int
 }
 
-// === Array data ===
+
 var dataKendaraan = []Kendaraan{
 	{1, "Avanza", "Mobil", true},
 	{2, "NMax", "Motor", true},
@@ -39,8 +38,6 @@ var dataPelanggan = []Pelanggan{
 
 var dataRental []Rental
 
-// === Fungsi Searching ===
-// Linear Search untuk mencari kendaraan berdasarkan nama
 func cariKendaraanNama(nama string) *Kendaraan {
 	for i := 0; i < len(dataKendaraan); i++ {
 		if strings.EqualFold(dataKendaraan[i].Nama, nama) {
@@ -50,7 +47,6 @@ func cariKendaraanNama(nama string) *Kendaraan {
 	return nil
 }
 
-// Binary Search (harus sudah terurut berdasarkan ID)
 func binarySearchKendaraanByID(arr []Kendaraan, id int) *Kendaraan {
 	low := 0
 	high := len(arr) - 1
@@ -68,8 +64,6 @@ func binarySearchKendaraanByID(arr []Kendaraan, id int) *Kendaraan {
 	return nil
 }
 
-// === Fungsi Sorting ===
-// Quick Sort berdasarkan nama kendaraan
 func quickSortKendaraanByNama(arr []Kendaraan, low, high int) {
 	if low < high {
 		p := partition(arr, low, high)
@@ -92,7 +86,6 @@ func partition(arr []Kendaraan, low, high int) int {
 	return i + 1
 }
 
-// Heap Sort berdasarkan ID kendaraan
 func heapSort(arr []Kendaraan) {
 	n := len(arr)
 
@@ -123,7 +116,6 @@ func heapify(arr []Kendaraan, n, i int) {
 	}
 }
 
-// === Fungsi Rental ===
 func sewaKendaraan(idKendaraan, idPelanggan, hari int) {
 	kendaraan := binarySearchKendaraanByID(dataKendaraan, idKendaraan)
 	if kendaraan == nil {
@@ -139,7 +131,6 @@ func sewaKendaraan(idKendaraan, idPelanggan, hari int) {
 	fmt.Println("Berhasil menyewa kendaraan.")
 }
 
-// === Main Program ===
 func main() {
 	fmt.Println("=== Aplikasi Rental Kendaraan ===")
 
