@@ -2,166 +2,268 @@ package main
 
 import (
 	"fmt"
+	"sort"
 	"strings"
 )
 
-type Kendaraan struct {
-	ID     int
-	Nama   string
-	Tipe   string
-	Status bool 
+// Struct
+type Vehicle struct {
+	Plate        string
+	Name         string
+	Type         string
+	IsRented     bool
+	HargaPerHari int
 }
 
-type Pelanggan struct {
+type Customer struct {
 	ID   int
-	Nama string
+	Name string
 }
 
 type Rental struct {
-	IDKendaraan int
-	IDPelanggan int
-	Hari        int
+	RentalID     int
+	CustomerID   int
+	Plate        string
+	LamaHari     int
+	TotalBiaya   int
 }
 
+var vehicles []Vehicle
+var customers []Customer
+var rentals []Rental
 
-var dataKendaraan = []Kendaraan{
-	{1, "Avanza", "Mobil", true},
-	{2, "NMax", "Motor", true},
-	{3, "Brio", "Mobil", true},
-}
-
-var dataPelanggan = []Pelanggan{
-	{1, "Andi"},
-	{2, "Budi"},
-	{3, "Citra"},
-}
-
-var dataRental []Rental
-
-func cariKendaraanNama(nama string) *Kendaraan {
-	for i := 0; i < len(dataKendaraan); i++ {
-		if strings.EqualFold(dataKendaraan[i].Nama, nama) {
-			return &dataKendaraan[i]
-		}
-	}
-	return nil
-}
-
-func binarySearchKendaraanByID(arr []Kendaraan, id int) *Kendaraan {
-	low := 0
-	high := len(arr) - 1
-
-	for low <= high {
-		mid := (low + high) / 2
-		if arr[mid].ID == id {
-			return &arr[mid]
-		} else if arr[mid].ID < id {
-			low = mid + 1
-		} else {
-			high = mid - 1
-		}
-	}
-	return nil
-}
-
-func quickSortKendaraanByNama(arr []Kendaraan, low, high int) {
-	if low < high {
-		p := partition(arr, low, high)
-		quickSortKendaraanByNama(arr, low, p-1)
-		quickSortKendaraanByNama(arr, p+1, high)
-	}
-}
-
-func partition(arr []Kendaraan, low, high int) int {
-	pivot := arr[high].Nama
-	i := low - 1
-
-	for j := low; j < high; j++ {
-		if arr[j].Nama < pivot {
-			i++
-			arr[i], arr[j] = arr[j], arr[i]
-		}
-	}
-	arr[i+1], arr[high] = arr[high], arr[i+1]
-	return i + 1
-}
-
-func heapSort(arr []Kendaraan) {
-	n := len(arr)
-
-	for i := n/2 - 1; i >= 0; i-- {
-		heapify(arr, n, i)
-	}
-
-	for i := n - 1; i > 0; i-- {
-		arr[0], arr[i] = arr[i], arr[0]
-		heapify(arr, i, 0)
-	}
-}
-
-func heapify(arr []Kendaraan, n, i int) {
-	largest := i
-	left := 2*i + 1
-	right := 2*i + 2
-
-	if left < n && arr[left].ID > arr[largest].ID {
-		largest = left
-	}
-	if right < n && arr[right].ID > arr[largest].ID {
-		largest = right
-	}
-	if largest != i {
-		arr[i], arr[largest] = arr[largest], arr[i]
-		heapify(arr, n, largest)
-	}
-}
-
-func sewaKendaraan(idKendaraan, idPelanggan, hari int) {
-	kendaraan := binarySearchKendaraanByID(dataKendaraan, idKendaraan)
-	if kendaraan == nil {
-		fmt.Println("Kendaraan tidak ditemukan.")
-		return
-	}
-	if !kendaraan.Status {
-		fmt.Println("Kendaraan sedang disewa.")
-		return
-	}
-	kendaraan.Status = false
-	dataRental = append(dataRental, Rental{idKendaraan, idPelanggan, hari})
-	fmt.Println("Berhasil menyewa kendaraan.")
-}
+var nextCustomerID int = 1
+var nextRentalID int = 1
 
 func main() {
-	fmt.Println("=== Aplikasi Rental Kendaraan ===")
+	for {
+		fmt.Println("\n=== Aplikasi Rental Kendaraan ===")
+		fmt.Println("1. Tambah Kendaraan")
+		fmt.Println("2. Tambah Customer")
+		fmt.Println("3. Tampilkan Kendaraan")
+		fmt.Println("4. Tampilkan Customer")
+		fmt.Println("5. Rental Kendaraan")
+		fmt.Println("6. Kembalikan Kendaraan")
+		fmt.Println("7. Cari Kendaraan (nama)")
+		fmt.Println("8. Cari Customer (nama)")
+		fmt.Println("9. Urutkan Kendaraan (nama)")
+		fmt.Println("10. Urutkan Customer (nama)")
+		fmt.Println("11. Lihat Pendapatan Total")
+		fmt.Println("12. Keluar")
+		fmt.Print("Pilih menu: ")
 
-	fmt.Println("\nData Kendaraan:")
-	for _, k := range dataKendaraan {
-		fmt.Printf("%d. %s (%s) - Tersedia: %t\n", k.ID, k.Nama, k.Tipe, k.Status)
+		var choice int
+		fmt.Scanln(&choice)
+
+		switch choice {
+		case 1:
+			addVehicle()
+		case 2:
+			addCustomer()
+		case 3:
+			listVehicles()
+		case 4:
+			listCustomers()
+		case 5:
+			rentVehicle()
+		case 6:
+			returnVehicle()
+		case 7:
+			searchVehicleByName()
+		case 8:
+			searchCustomerByName()
+		case 9:
+			sortVehiclesByName()
+		case 10:
+			sortCustomersByName()
+		case 11:
+			showTotalRevenue()
+		case 12:
+			fmt.Println("Terima kasih telah menggunakan aplikasi.")
+			return
+		default:
+			fmt.Println("Pilihan tidak valid.")
+		}
 	}
+}
 
-	fmt.Println("\nMelakukan penyortiran kendaraan berdasarkan nama (Quick Sort)...")
-	quickSortKendaraanByNama(dataKendaraan, 0, len(dataKendaraan)-1)
-	for _, k := range dataKendaraan {
-		fmt.Printf("%d. %s\n", k.ID, k.Nama)
+func addVehicle() {
+	var name, vehicleType, plate string
+	var harga int
+	fmt.Print("Masukkan plat kendaraan: ")
+	fmt.Scanln(&plate)
+	fmt.Print("Masukkan nama kendaraan: ")
+	fmt.Scanln(&name)
+	fmt.Print("Masukkan tipe kendaraan (Mobil/Motor): ")
+	fmt.Scanln(&vehicleType)
+	fmt.Print("Masukkan harga sewa per hari: ")
+	fmt.Scanln(&harga)
+
+	vehicle := Vehicle{
+		Plate:        plate,
+		Name:         name,
+		Type:         vehicleType,
+		HargaPerHari: harga,
+		IsRented:     false,
 	}
+	vehicles = append(vehicles, vehicle)
+	fmt.Println("Kendaraan berhasil ditambahkan.")
+}
 
-	fmt.Println("\nMelakukan penyortiran kendaraan berdasarkan ID (Heap Sort)...")
-	heapSort(dataKendaraan)
-	for _, k := range dataKendaraan {
-		fmt.Printf("%d. %s\n", k.ID, k.Nama)
+func addCustomer() {
+	var name string
+	fmt.Print("Masukkan nama customer: ")
+	fmt.Scanln(&name)
+
+	customer := Customer{
+		ID:   nextCustomerID,
+		Name: name,
 	}
+	customers = append(customers, customer)
+	nextCustomerID++
+	fmt.Println("Customer berhasil ditambahkan.")
+}
 
-	fmt.Println("\nMencari kendaraan bernama 'Brio' (Linear Search)...")
-	found := cariKendaraanNama("Brio")
-	if found != nil {
-		fmt.Printf("Ditemukan: %s (%s)\n", found.Nama, found.Tipe)
+func listVehicles() {
+	fmt.Println("\nDaftar Kendaraan:")
+	if len(vehicles) == 0 {
+		fmt.Println("Belum ada kendaraan.")
+		return
 	}
-
-	fmt.Println("\nMenyewa kendaraan ID 1 oleh pelanggan ID 2 selama 3 hari...")
-	sewaKendaraan(1, 2, 3)
-
-	fmt.Println("\nData Rental:")
-	for _, r := range dataRental {
-		fmt.Printf("Kendaraan ID %d disewa oleh Pelanggan ID %d selama %d hari\n", r.IDKendaraan, r.IDPelanggan, r.Hari)
+	for _, v := range vehicles {
+		status := "Tersedia"
+		if v.IsRented {
+			status = "Dirental"
+		}
+		fmt.Printf("Plat: %s | Nama: %s | Tipe: %s | Harga/hari: %d | Status: %s\n",
+			v.Plate, v.Name, v.Type, v.HargaPerHari, status)
 	}
+}
+
+func listCustomers() {
+	fmt.Println("\nDaftar Customer:")
+	if len(customers) == 0 {
+		fmt.Println("Belum ada customer.")
+		return
+	}
+	for _, c := range customers {
+		fmt.Printf("ID: %d | Nama: %s\n", c.ID, c.Name)
+	}
+}
+
+func rentVehicle() {
+	var plate string
+	var customerID, hari int
+	fmt.Print("Masukkan plat kendaraan: ")
+	fmt.Scanln(&plate)
+	fmt.Print("Masukkan ID customer: ")
+	fmt.Scanln(&customerID)
+	fmt.Print("Berapa hari ingin dirental? ")
+	fmt.Scanln(&hari)
+
+	for i, v := range vehicles {
+		if v.Plate == plate {
+			if v.IsRented {
+				fmt.Println("Kendaraan sedang dirental.")
+				return
+			}
+			vehicles[i].IsRented = true
+
+			total := v.HargaPerHari * hari
+			rental := Rental{
+				RentalID:   nextRentalID,
+				CustomerID: customerID,
+				Plate:      plate,
+				LamaHari:   hari,
+				TotalBiaya: total,
+			}
+			rentals = append(rentals, rental)
+			nextRentalID++
+			fmt.Printf("Kendaraan berhasil dirental. Total biaya: %d\n", total)
+			return
+		}
+	}
+	fmt.Println("Kendaraan tidak ditemukan.")
+}
+
+func returnVehicle() {
+	var plate string
+	fmt.Print("Masukkan plat kendaraan yang ingin dikembalikan: ")
+	fmt.Scanln(&plate)
+
+	for i, v := range vehicles {
+		if v.Plate == plate {
+			if !v.IsRented {
+				fmt.Println("Kendaraan belum dirental.")
+				return
+			}
+			vehicles[i].IsRented = false
+			fmt.Println("Kendaraan berhasil dikembalikan.")
+			return
+		}
+	}
+	fmt.Println("Kendaraan tidak ditemukan.")
+}
+
+func searchVehicleByName() {
+	var keyword string
+	fmt.Print("Masukkan nama kendaraan yang dicari: ")
+	fmt.Scanln(&keyword)
+
+	found := false
+	for _, v := range vehicles {
+		if strings.Contains(strings.ToLower(v.Name), strings.ToLower(keyword)) {
+			status := "Tersedia"
+			if v.IsRented {
+				status = "Dirental"
+			}
+			fmt.Printf("Plat: %s | Nama: %s | Tipe: %s | Harga/hari: %d | Status: %s\n",
+				v.Plate, v.Name, v.Type, v.HargaPerHari, status)
+			found = true
+		}
+	}
+	if !found {
+		fmt.Println("Kendaraan tidak ditemukan.")
+	}
+}
+
+func searchCustomerByName() {
+	var keyword string
+	fmt.Print("Masukkan nama customer yang dicari: ")
+	fmt.Scanln(&keyword)
+
+	found := false
+	for _, c := range customers {
+		if strings.Contains(strings.ToLower(c.Name), strings.ToLower(keyword)) {
+			fmt.Printf("ID: %d | Nama: %s\n", c.ID, c.Name)
+			found = true
+		}
+	}
+	if !found {
+		fmt.Println("Customer tidak ditemukan.")
+	}
+}
+
+func sortVehiclesByName() {
+	sort.Slice(vehicles, func(i, j int) bool {
+		return strings.ToLower(vehicles[i].Name) < strings.ToLower(vehicles[j].Name)
+	})
+	fmt.Println("Kendaraan berhasil diurutkan berdasarkan nama.")
+	listVehicles()
+}
+
+func sortCustomersByName() {
+	sort.Slice(customers, func(i, j int) bool {
+		return strings.ToLower(customers[i].Name) < strings.ToLower(customers[j].Name)
+	})
+	fmt.Println("Customer berhasil diurutkan berdasarkan nama.")
+	listCustomers()
+}
+
+func showTotalRevenue() {
+	total := 0
+	for _, r := range rentals {
+		total += r.TotalBiaya
+	}
+	fmt.Printf("Total pendapatan dari rental: %d\n", total)
 }
